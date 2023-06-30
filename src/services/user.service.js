@@ -33,12 +33,9 @@ const authenticate = async ({ email, password }) => {
   var user = await User.findOne({ email });
 
   if (user && bcrypt.compareSync(password, user.hash)) {
-    var token = jwt.sign({ sub: user.id }, SECRET_KEY, {
-      expiresIn: JWT_DURATION,
-    });
     return {
-      ...user.toJSON(),
-      token,
+      email: user.email,
+      msj: "Login exitoso!",
     };
   } else throw "Usuario o contraseña incorrectos.";
 };
