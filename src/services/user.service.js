@@ -13,18 +13,18 @@ const User = db.User;
 
 //REGISTER
 const register = async (userParam) => {
-  const newUser = await User.findOne( {email: userParam.email} ) //Chequeo si hay un usuario ya registrado
-  if (newUser){
-    throw "El correo ya está registrado."
+  const currentUser = await User.findOne( {email: userParam.email} ) //Chequeo si hay un usuario ya registrado
+  if (currentUser){
+    throw "El correo ya está registrado. Por favor, ingrese otro.";
+  }
+  if (!userParam.password) {
+    throw "Por favor, indicar una contraseña.";
   }
   const user = new User({
     ...userParam,
     createdAt: Date.now(),
   });
 
-  if (!userParam.password) {
-    throw "Por favor, indicar una contraseña.";
-  } 
   user.hash = bcrypt.hashSync(userParam.password, 10);
   await user.save();
 
@@ -32,18 +32,22 @@ const register = async (userParam) => {
 };
 
 //LOGIN
-
 const authenticate = async ({ email, password }) => {
   const user = await User.findOne({ email });
-
-  if (user && bcrypt.compareSync(password, user.hash)) {
-    return {
-      email: user.email,
-      message: "¡Login exitoso!",
-    };
-  } else {
+  if (!user) {
     throw "Usuario o contraseña incorrectos.";
-  } 
+  }
+
+  const passwordMatch = bcrypt.compareSync(password, user.hash);
+
+  if (!passwordMatch) {
+    throw "Usuario o contraseña incorrectos.";
+  }
+
+  return {
+    email: user.email,
+    message: "¡Login exitoso!",
+  };
 };
 
 export default {
